@@ -416,56 +416,32 @@ class SpreadsheetDatabase {
   // 5. 裏チャット (Chat) - 全員閲覧可能
   // ----------------------------------------------------
   async getChatMessages() {
-    const config = this.getGASConfig();
-
-    // GAS連携が有効ならGASからメッセージと既読状態を取得
-    if (config.isEnabled && config.gasUrl) {
-      try {
-        const response = await fetch(`${config.gasUrl}?action=getChat`);
-        const result = await response.json();
-        const remoteMessages = result.messages || (Array.isArray(result) ? result : []);
-        if (result.readStatus) {
-          this._chatReadStatus = result.readStatus;
-        }
-        if (result.reactions) {
-          this._chatReactions = result.reactions;
-        }
-
-        // ローカルにのみある未送信メッセージ（GASにまだ届いていないもの）をマージ
-        const data = this._getLocalData();
-        const remoteIds = new Set(remoteMessages.map(m => m.id));
-        const localOnly = (data.chat || []).filter(m => !remoteIds.has(m.id));
-        const merged = [...remoteMessages, ...localOnly];
-
-        // ローカルも更新
-        data.chat = merged;
-        this._saveLocalData(data);
-
-        return merged.sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
-      } catch (error) {
-        console.error("GASチャットデータ取得エラー。ローカルから読み込みます:", error);
-      }
-    }
-
-    // フォールバック: ローカルデータ
+    // ローカルデータを即返す（UIブロックしない）
     const data = this._getLocalData();
-    const now = new Date().getTime();
-    const tenMinutesMs = 24 * 60 * 60 * 1000;
+    if (!data.chat) data.chat = [];
 
-    if (data.chat && data.chat.length > 0) {
-      const initialCount = data.chat.length;
-      data.chat = data.chat.filter(item => {
-        const msgTime = new Date(item.createdAt).getTime();
-        return (now - msgTime) < tenMinutesMs;
-      });
-      if (data.chat.length !== initialCount) {
-        this._saveLocalData(data);
-      }
-    } else {
-      data.chat = [];
+    // バックグラウンドでGAS同期（前回の同期が終わっていれば実行）
+    const config = this.getGASConfig();
+    if (config.isEnabled && config.gasUrl && !this._chatSyncing) {
+      this._chatSyncing = true;
+      fetch(`${config.gasUrl}?action=getChat`)
+        .then(res => res.json())
+        .then(result => {
+          const remoteMessages = result.messages || (Array.isArray(result) ? result : []);
+          if (result.readStatus) this._chatReadStatus = result.readStatus;
+          if (result.reactions) this._chatReactions = result.reactions;
+
+          const localData = this._getLocalData();
+          const remoteIds = new Set(remoteMessages.map(m => m.id));
+          const localOnly = (localData.chat || []).filter(m => !remoteIds.has(m.id));
+          localData.chat = [...remoteMessages, ...localOnly];
+          this._saveLocalData(localData);
+        })
+        .catch(err => console.error("GASチャット同期エラー:", err))
+        .finally(() => { this._chatSyncing = false; });
     }
 
-    return [...data.chat].sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+    return [...data.chat].sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
   }
 
   async sendChatMessage(message) {
