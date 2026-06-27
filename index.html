@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>社内ポータルサイト - PortalHub</title>
+  <!-- Google Fontsのインポート -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome (アイコン用) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ======================================================== -->
+  <!-- 1. ログイン画面 -->
+  <!-- ======================================================== -->
+  <div id="login-screen" class="screen-container active">
+    <div class="login-background">
+      <div class="bg-orb orb-1"></div>
+      <div class="bg-orb orb-2"></div>
+    </div>
+    <div class="login-card-wrapper">
+      <div class="login-card">
+        <div class="login-header">
+          <div class="logo-icon"><i class="fa-solid fa-cubes"></i></div>
+          <h1>PortalHub</h1>
+          <p>社内ポータルシステムへログイン</p>
+        </div>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-email"><i class="fa-regular fa-envelope"></i> メールアドレス</label>
+            <input type="email" id="login-email" required placeholder="user1@example.com">
+          </div>
+          <div class="form-group">
+            <label for="login-password"><i class="fa-solid fa-lock"></i> パスワード</label>
+            <input type="password" id="login-password" required placeholder="••••••••">
+          </div>
+          <div class="error-message" id="login-error"></div>
+          <button type="submit" class="btn-primary w-full">
+            <span>ログイン</span> <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================== -->
+  <!-- 2. メインアプリケーション画面 -->
+  <!-- ======================================================== -->
+  <div id="app-screen" class="screen-container">
+    <!-- サイドバーナビゲーション -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <i class="fa-solid fa-cubes brand-icon"></i>
+        <span class="brand-name">PortalHub</span>
+      </div>
+
+      <!-- ユーザー簡易プロフィール -->
+      <div class="sidebar-user" id="current-user-card">
+        <img src="" alt="Avatar" class="user-avatar" id="sidebar-avatar">
+        <div class="user-info">
+          <h3 class="user-name" id="sidebar-name">---</h3>
+          <p class="user-dept" id="sidebar-dept">---</p>
+        </div>
+      </div>
+
+      <!-- メニューアイテム -->
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-tab="attendance">
+          <i class="fa-regular fa-clock"></i> <span>勤怠管理</span>
+        </button>
+        <button class="nav-item" data-tab="board">
+          <i class="fa-regular fa-comment-dots"></i> <span>社内掲示板</span>
+        </button>
+        <button class="nav-item" data-tab="calendar">
+          <i class="fa-regular fa-calendar-days"></i> <span>予定管理</span>
+        </button>
+        <button class="nav-item" data-tab="mypage">
+          <i class="fa-regular fa-user"></i> <span>マイページ</span>
+        </button>
+        <button class="nav-item" data-tab="settings">
+          <i class="fa-solid fa-sliders"></i> <span>システム設定</span>
+        </button>
+        <button class="nav-item" data-tab="contact">
+          <i class="fa-regular fa-envelope"></i> <span>管理者問い合わせ</span>
+        </button>
+      </nav>
+
+      <!-- ログアウト -->
+      <div class="sidebar-footer">
+        <button id="btn-secret-chat" class="btn-secret-chat" data-tab="chat" title="シークレットルーム">
+          <i class="fa-solid fa-circle-nodes" style="opacity: 0.15; font-size: 0.95rem; cursor: pointer;"></i>
+        </button>
+        <button id="btn-logout" class="btn-logout">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>ログアウト</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- メインコンテンツ領域 -->
+    <div class="main-wrapper">
+      <!-- 上部ヘッダー -->
+      <header class="app-header">
+        <div class="header-left">
+          <button id="sidebar-toggle" class="sidebar-toggle-btn"><i class="fa-solid fa-bars"></i></button>
+          <h2 id="current-tab-title" class="tab-title">勤怠管理</h2>
+        </div>
+        <div class="header-right">
+          <div class="status-badge status-active" id="header-user-status">
+            <span class="status-dot"></span> <span id="header-status-text">在席</span>
+          </div>
+          <div class="date-badge" id="header-date">2026年6月2日 (火)</div>
+        </div>
+      </header>
+
+      <!-- 各コンテンツタブの切り替えコンテナ -->
+      <main class="content-container">
+        
+        <!-- ① 勤怠管理タブ -->
+        <section id="tab-attendance" class="tab-content active animate-fade-in">
+          <div class="grid grid-2col">
+            <!-- 打刻カード -->
+            <div class="card card-hero glass">
+              <div class="clock-display">
+                <div class="clock-time" id="digital-clock">00:00:00</div>
+                <div class="clock-date" id="digital-date">2026年06月02日 (火)</div>
+              </div>
+              
+              <div class="punch-actions">
+                <button id="btn-clock-in" class="btn-punch in">
+                  <div class="punch-icon"><i class="fa-solid fa-arrow-right-to-bracket"></i></div>
+                  <span>出勤打刻</span>
+                </button>
+                <button id="btn-clock-out" class="btn-punch out">
+                  <div class="punch-icon"><i class="fa-solid fa-arrow-right-from-bracket"></i></div>
+                  <span>退勤打刻</span>
+                </button>
+              </div>
+              
+              <div class="punch-note-wrapper">
+                <label for="punch-note">業務メモ (任意):</label>
+                <input type="text" id="punch-note" placeholder="リモートワーク、客先直行など" class="form-control">
+              </div>
+            </div>
+
+            <!-- 本日の状況 & クイック統計 -->
+            <div class="card">
+              <h3 class="card-title"><i class="fa-solid fa-chart-simple text-primary"></i> 本日のステータス</h3>
+              <div class="today-status-board">
+                <div class="status-item">
+                  <span class="label">本日の出勤時刻</span>
+                  <span class="value" id="today-clock-in-time">--:--</span>
+                </div>
+                <div class="status-item">
+                  <span class="label">本日の退勤時刻</span>
+                  <span class="value" id="today-clock-out-time">--:--</span>
+                </div>
+                <div class="status-item">
+                  <span class="label">稼働状態</span>
+                  <span class="value badge" id="today-status-badge">未打刻</span>
+                </div>
+              </div>
+              
+              <div class="attendance-notice">
+                <i class="fa-solid fa-circle-info"></i>
+                <p>勤怠データはご自身のメールアドレスに紐づき保護されています (Row Owners)。</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 履歴一覧カード -->
+          <div class="card margin-t-lg">
+            <div class="card-header-flex">
+              <h3 class="card-title"><i class="fa-solid fa-list-check text-primary"></i> 打刻履歴一覧</h3>
+              <span class="sub-label">過去の打刻データ</span>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>日付</th>
+                    <th>出勤時刻</th>
+                    <th>退勤時刻</th>
+                    <th>状態</th>
+                    <th>メモ</th>
+                  </tr>
+                </thead>
+                <tbody id="attendance-history-tbody">
+                  <!-- JSで動的描画 -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- ② 掲示板タブ -->
+        <section id="tab-board" class="tab-content animate-fade-in">
+          <div class="board-action-bar">
+            <button id="btn-open-post-modal" class="btn-primary">
+              <i class="fa-solid fa-pen-to-square"></i> 新規投稿する
+            </button>
+          </div>
+
+          <!-- 新規投稿フォーム（アコーディオン/表示エリア） -->
+          <div id="board-post-form-card" class="card margin-b-lg hidden-fold animate-slide-down">
+            <h3 class="card-title"><i class="fa-solid fa-plus-circle text-primary"></i> 掲示板への新規投稿</h3>
+            <form id="board-post-form">
+              <div class="grid grid-2col gap-md">
+                <div class="form-group">
+                  <label for="post-title">タイトル</label>
+                  <input type="text" id="post-title" required placeholder="お知らせのタイトルを入力してください" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label for="post-category">カテゴリ</label>
+                  <select id="post-category" class="form-control">
+                    <option value="一般">一般</option>
+                    <option value="アナウンス">アナウンス</option>
+                    <option value="メンテナンス">メンテナンス</option>
+                    <option value="イベント">イベント</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-group margin-t-md">
+                <label for="post-content">内容</label>
+                <textarea id="post-content" required placeholder="投稿する本文を入力してください（改行も反映されます）" rows="5" class="form-control"></textarea>
+              </div>
+              <div class="form-actions margin-t-md">
+                <button type="submit" class="btn-primary">投稿を公開</button>
+                <button type="button" id="btn-cancel-post" class="btn-secondary">キャンセル</button>
+              </div>
+            </form>
+          </div>
+
+          <!-- 投稿リスト -->
+          <div class="board-grid" id="board-posts-container">
+            <!-- JSで動的描画 -->
+          </div>
+        </section>
+
+        <!-- ③ 予定管理タブ -->
+        <section id="tab-calendar" class="tab-content animate-fade-in">
+          <div class="grid grid-3to1">
+            <!-- カレンダー表示カード -->
+            <div class="card">
+              <div class="calendar-header">
+                <button id="btn-prev-month" class="btn-icon"><i class="fa-solid fa-chevron-left"></i></button>
+                <h3 class="calendar-current-month" id="calendar-month-year">2026年6月</h3>
+                <button id="btn-next-month" class="btn-icon"><i class="fa-solid fa-chevron-right"></i></button>
+              </div>
+              <!-- 曜日ヘッダー -->
+              <div class="calendar-weekdays">
+                <div>日</div><div>月</div><div>火</div><div>水</div><div>木</div><div>金</div><div>土</div>
+              </div>
+              <!-- カレンダーグリッド -->
+              <div class="calendar-grid" id="calendar-days-grid">
+                <!-- JSで動的描画 -->
+              </div>
+            </div>
+
+            <!-- サイドバー：選択日の予定一覧 ＆ 追加 -->
+            <div class="flex-col gap-lg">
+              <div class="card">
+                <div class="card-header-flex">
+                  <h3 class="card-title" id="selected-date-label">6月2日の予定</h3>
+                  <button id="btn-open-schedule-modal" class="btn-sm btn-outline"><i class="fa-solid fa-plus"></i> 追加</button>
+                </div>
+                <div class="schedule-list" id="selected-day-schedule-list">
+                  <!-- JSで動的描画 -->
+                </div>
+              </div>
+              
+              <div class="card glass-subtle">
+                <h4 class="card-title-sm"><i class="fa-solid fa-circle-nodes text-primary"></i> 予定の種類</h4>
+                <div class="legend-list">
+                  <div class="legend-item"><span class="legend-color legend-personal"></span> <span>マイ予定 (Row Owner)</span></div>
+                  <div class="legend-item"><span class="legend-color legend-global"></span> <span>全体共有予定 (全員表示)</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 予定追加モーダル/折りたたみフォーム -->
+          <div id="schedule-form-modal" class="modal-overlay hidden">
+            <div class="modal-content card">
+              <div class="modal-header">
+                <h3><i class="fa-solid fa-calendar-plus text-primary"></i> 予定の登録</h3>
+                <button class="modal-close" id="btn-close-schedule-modal"><i class="fa-solid fa-xmark"></i></button>
+              </div>
+              <form id="schedule-form">
+                <div class="form-group">
+                  <label for="sch-title">予定タイトル</label>
+                  <input type="text" id="sch-title" required placeholder="会議、レビューなど" class="form-control">
+                </div>
+                <div class="form-group">
+                  <label for="sch-description">説明</label>
+                  <textarea id="sch-description" placeholder="場所や詳細事項" rows="2" class="form-control"></textarea>
+                </div>
+                <div class="grid grid-2col gap-md">
+                  <div class="form-group">
+                    <label for="sch-start">開始日時</label>
+                    <input type="datetime-local" id="sch-start" required class="form-control">
+                  </div>
+                  <div class="form-group">
+                    <label for="sch-end">終了日時</label>
+                    <input type="datetime-local" id="sch-end" required class="form-control">
+                  </div>
+                </div>
+                <div class="form-group-checkbox margin-t-md">
+                  <input type="checkbox" id="sch-is-global">
+                  <label for="sch-is-global">全体共有の予定にする（全員のカレンダーに表示されます）</label>
+                </div>
+                <div class="form-actions margin-t-lg">
+                  <button type="submit" class="btn-primary">保存する</button>
+                  <button type="button" id="btn-cancel-schedule" class="btn-secondary">キャンセル</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </section>
+
+        <!-- ④ マイページタブ -->
+        <section id="tab-mypage" class="tab-content animate-fade-in">
+          <div class="grid grid-3to1">
+            <!-- プロフィール編集カード -->
+            <div class="card">
+              <h3 class="card-title"><i class="fa-regular fa-id-card text-primary"></i> プロファイル詳細</h3>
+              <form id="profile-form" class="margin-t-md">
+                <div class="profile-layout">
+                  <div class="profile-avatar-section">
+                    <img src="" alt="Avatar" class="profile-avatar-large" id="mypage-avatar-img">
+                    <div class="avatar-info-text">
+                      <p class="small text-muted">※アバター画像はスプレッドシートのUsersシートから自動取得されます。</p>
+                    </div>
+                  </div>
+                  
+                  <div class="profile-fields-section">
+                    <div class="grid grid-2col gap-md">
+                      <div class="form-group">
+                        <label for="mypage-email">メールアドレス（変更不可）</label>
+                        <input type="email" id="mypage-email" readonly class="form-control bg-light" disabled>
+                      </div>
+                      <div class="form-group">
+                        <label for="mypage-name">氏名</label>
+                        <input type="text" id="mypage-name" required class="form-control">
+                      </div>
+                    </div>
+                    
+                    <div class="grid grid-2col gap-md margin-t-md">
+                      <div class="form-group">
+                        <label for="mypage-dept">所属部署</label>
+                        <input type="text" id="mypage-dept" required class="form-control">
+                      </div>
+                      <div class="form-group">
+                        <label for="mypage-role">役職/職種</label>
+                        <input type="text" id="mypage-role" required class="form-control">
+                      </div>
+                    </div>
+
+                    <div class="form-group margin-t-md">
+                      <label for="mypage-status">現在のステータス</label>
+                      <select id="mypage-status" class="form-control">
+                        <option value="在席">在席 (Active)</option>
+                        <option value="外出中">外出中 (Out of Office)</option>
+                        <option value="会議中">会議中 (In a Meeting)</option>
+                        <option value="休暇中">休暇中 (On Leave)</option>
+                      </select>
+                    </div>
+
+                    <div class="form-actions margin-t-lg">
+                      <button type="submit" class="btn-primary">プロフィールを更新</button>
+                      <span id="profile-success-msg" class="text-success hidden margin-l-md"><i class="fa-solid fa-circle-check"></i> 更新しました！</span>
+                    </div>
+                  </div>
+                </div>
+              </form>
+            </div>
+
+            <!-- クイック統計 / サマリー -->
+            <div class="flex-col gap-lg">
+              <div class="card glass">
+                <h3 class="card-title-sm"><i class="fa-solid fa-chart-pie text-primary"></i> 今月の勤怠サマリー</h3>
+                <div class="stat-grid margin-t-md">
+                  <div class="stat-card">
+                    <span class="stat-num" id="stat-work-days">0</span>
+                    <span class="stat-label">出勤日数</span>
+                  </div>
+                  <div class="stat-card">
+                    <span class="stat-num" id="stat-total-hours">0.0</span>
+                    <span class="stat-label">総労働時間</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card">
+                <h4 class="card-title-sm"><i class="fa-solid fa-shield-halved text-success"></i> セキュリティ設定</h4>
+                <p class="small text-muted">本システムはログイン情報に基づき、個人データへの不正アクセスを論理的に防止しています。アカウントのパスワード管理にご注意ください。</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ⑤ システム設定タブ -->
+        <section id="tab-settings" class="tab-content animate-fade-in">
+          <div class="card">
+            <h3 class="card-title"><i class="fa-solid fa-database text-primary"></i> Googleスプレッドシート（GAS Web API）連携設定</h3>
+            <p class="margin-b-md small text-muted">
+              デフォルトではブラウザのLocalStorageを用いたモックDBで動作しています。本物のGoogleスプレッドシートとデータを完全同期させるには、GASにWebアプリをデプロイし、そのAPI URLを設定してください。
+            </p>
+
+            <form id="settings-gas-form" class="margin-t-md">
+              <div class="form-group-checkbox margin-b-md">
+                <input type="checkbox" id="settings-gas-enabled">
+                <label for="settings-gas-enabled" class="weight-bold text-primary">Googleスプレッドシート連携を有効化する</label>
+              </div>
+              
+              <div class="form-group">
+                <label for="settings-gas-url">GAS Web App API URL</label>
+                <input type="url" id="settings-gas-url" placeholder="https://script.google.com/macros/s/.../exec" class="form-control">
+              </div>
+
+              <div class="settings-actions margin-t-lg">
+                <button type="submit" class="btn-primary">設定を保存</button>
+                <button type="button" id="btn-test-connection" class="btn-outline">
+                  <i class="fa-solid fa-plug"></i> 接続テスト
+                </button>
+                <span id="settings-test-result" class="margin-l-md weight-bold"></span>
+              </div>
+            </form>
+          </div>
+
+          <div class="card margin-t-lg">
+            <h3 class="card-title text-danger"><i class="fa-solid fa-triangle-exclamation"></i> 開発・モックデータツール</h3>
+            <p class="small text-muted">テスト用のデータを初期状態に戻したい場合、または不整合が生じた場合は、以下のボタンからローカルのモックデータベースを強制リセットできます。</p>
+            <div class="margin-t-md">
+              <button id="btn-reset-mock" class="btn-danger-outline">
+                <i class="fa-solid fa-arrows-rotate"></i> モックデータベースのリセット
+              </button>
+              <span id="reset-success-msg" class="text-success hidden margin-l-md"><i class="fa-solid fa-check-double"></i> リセットが完了しました！</span>
+            </div>
+          </div>
+
+          <!-- GAS実装リファレンス -->
+          <div class="card margin-t-lg glass-subtle">
+            <h3 class="card-title-sm"><i class="fa-solid fa-code text-primary"></i> 【参考】GAS（Google Apps Script）側のコード構成例</h3>
+            <p class="small text-muted margin-b-md">Googleスプレッドシートと連携させるための、GAS側の実装コード（簡略版）です。「Webアプリとしてデプロイ」し、アクセス権限を「全員（匿名ユーザーを含む）」にして公開します。</p>
+            <pre class="code-block"><code>// GASコード例 (Code.gs)
+function doGet(e) {
+  var action = e.parameter.action;
+  var email = e.parameter.email;
+  
+  if (action === "login") {
+    // Usersシートからemailとpasswordが一致する行を返す
+  } else if (action === "getAttendance") {
+    // Attendanceシートからemail（Row Owner）が一致する行のみを抽出し返却する【セキュリティ】
+  } else if (action === "getBoard") {
+    // Boardシートのデータを全件返却する
+  } else if (action === "getSchedule") {
+    // Scheduleシートからemailが一致するか、isGlobal=trueのものを返却する
+  } else if (action === "ping") {
+    return ContentService.createTextOutput(JSON.stringify({success:true, message:"pong"})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doPost(e) {
+  var action = e.parameter.action;
+  // データの書き込み（clockIn, clockOut, addBoard, addSchedule, updateProfile）
+  // それぞれの行に送信元の email を記録し、Row Ownerを制御可能にする。
+}</code></pre>
+          </div>
+        </section>
+
+        <!-- ⑥ シークレットチャットタブ -->
+        <section id="tab-chat" class="tab-content animate-fade-in">
+          <div class="card flex-col" style="height: calc(100vh - 200px); max-height: 700px; padding: 1.25rem; display: flex; flex-direction: column;">
+            <div class="card-header-flex" style="margin-bottom: 0.75rem; padding-bottom: 0.5rem;">
+              <h3 class="card-title"><i class="fa-solid fa-shield-halved text-accent" style="color: var(--accent);"></i> 管理者用チャットルーム</h3>
+              <span class="sub-label">管理者専用の連絡・システム管理チャット</span>
+            </div>
+            
+            <!-- チャット履歴エリア -->
+            <div class="chat-messages-area" id="chat-messages-container" style="flex-grow: 1; overflow-y: auto; padding: 1rem 0.5rem; display: flex; flex-direction: column; gap: 1rem; background: #f8fafc; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+              <!-- JSで動的描画 -->
+            </div>
+
+            <!-- チャット送信フォーム -->
+            <form id="chat-send-form" class="margin-t-md" style="display: flex; gap: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 1rem;">
+              <input type="text" id="chat-message-input" placeholder="メッセージを入力..." required class="form-control" style="flex-grow: 1; margin-bottom: 0; background: #fff; border: 1px solid var(--border-color);">
+              <button type="submit" class="btn-primary" style="padding: 0 1.5rem; height: 100%;">
+                <i class="fa-regular fa-paper-plane"></i>
+              </button>
+            </form>
+          </div>
+        </section>
+
+        <!-- ⑦ 管理者問い合わせタブ -->
+        <section id="tab-contact" class="tab-content animate-fade-in">
+          <div class="card max-w-lg margin-t-md" style="max-width: 600px; margin: 2rem auto 0;">
+            <div id="contact-form-area">
+              <div class="card-header-flex" style="margin-bottom: 1.5rem; padding-bottom: 0.75rem;">
+                <h3 class="card-title"><i class="fa-regular fa-paper-plane text-primary"></i> 管理者へのお問い合わせ</h3>
+                <span class="sub-label">件名と本文を入力してください</span>
+              </div>
+              
+              <form id="contact-form">
+                <div class="form-group">
+                  <label for="contact-subject">件名</label>
+                  <input type="text" id="contact-subject" required placeholder="件名を入力してください" class="form-control" style="background: #fff; border: 1px solid var(--border-color);">
+                </div>
+                
+                <div class="form-group margin-t-md">
+                  <label for="contact-body">本文</label>
+                  <textarea id="contact-body" required placeholder="お問い合わせ内容を入力してください" rows="6" class="form-control" style="background: #fff; border: 1px solid var(--border-color);"></textarea>
+                </div>
+                
+                <div class="error-message" id="contact-error" style="margin-bottom: 0.5rem;"></div>
+                
+                <div class="form-actions margin-t-lg">
+                  <button type="submit" class="btn-primary" id="btn-contact-submit">
+                    <span>メールを送信</span> <i class="fa-solid fa-paper-plane"></i>
+                  </button>
+                </div>
+              </form>
+            </div>
+            
+            <!-- 送信完了メッセージ（初期非表示） -->
+            <div id="contact-success-area" class="hidden animate-fade-in" style="text-align: center; padding: 2rem 0;">
+              <i class="fa-regular fa-circle-check text-success" style="font-size: 4rem; margin-bottom: 1rem; color: var(--color-success);"></i>
+              <h4 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem;">送信が完了しました</h4>
+              <p class="text-muted small" style="margin-bottom: 1.5rem;">管理者へメールが直接送信されました。</p>
+              <button type="button" id="btn-contact-reset" class="btn-secondary">新規作成に戻る</button>
+            </div>
+          </div>
+        </section>
+
+      </main>
+    </div>
+  </div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
