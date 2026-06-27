@@ -1652,6 +1652,48 @@ body {
 .chat-message-row.other .chat-msg-time {
   margin-left: 0.5rem;
 }
+.chat-reaction-picker {
+  display: none;
+  gap: 4px;
+  margin-top: 6px;
+  padding: 4px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  justify-content: center;
+}
+.chat-reaction-btn {
+  cursor: pointer;
+  font-size: 1.1rem;
+  padding: 2px 6px;
+  border-radius: 50%;
+  transition: transform 0.15s;
+}
+.chat-reaction-btn:hover {
+  transform: scale(1.3);
+}
+.chat-reactions-display {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+.chat-reaction-badge {
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: #f0f0f0;
+  border: 1px solid #e0e0e0;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.chat-reaction-badge.mine {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+.chat-reaction-badge:hover {
+  background: #e2e8f0;
+}
 
 /* アプリケーション内のすべての入力フォームの文字色を視認性の高い色に修正（背景と同化する問題の解決） */
 #app-screen .form-control,

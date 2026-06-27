@@ -56,6 +56,8 @@ function getSheet(sheetName) {
       sheet.appendRow(["email", "success", "reason", "timestamp"]);
     } else if (sheetName === "ChatReadStatus") {
       sheet.appendRow(["email", "lastReadAt"]);
+    } else if (sheetName === "ChatReactions") {
+      sheet.appendRow(["messageId", "email", "reaction", "timestamp"]);
     }
   }
   return sheet;
@@ -192,7 +194,17 @@ function doGet(e) {
         readStatus[readRows[i][0]] = readRows[i][1];
       }
 
-      return createResponse({ messages: validMessages.reverse(), readStatus: readStatus });
+      // リアクションを取得
+      const reactSheet = getSheet("ChatReactions");
+      const reactRows = reactSheet.getDataRange().getValues();
+      const reactions = {};
+      for (let i = 1; i < reactRows.length; i++) {
+        const msgId = reactRows[i][0];
+        if (!reactions[msgId]) reactions[msgId] = [];
+        reactions[msgId].push({ email: reactRows[i][1], reaction: reactRows[i][2] });
+      }
+
+      return createResponse({ messages: validMessages.reverse(), readStatus: readStatus, reactions: reactions });
     }
     
     return createResponse({ success: false, message: "無効なGETアクションです" });
@@ -374,6 +386,24 @@ function doPost(e) {
         sheet.appendRow([e.parameter.email, e.parameter.lastReadAt]);
       }
       return createResponse({ success: true });
+    }
+
+    // リアクションの追加/削除
+    if (action === "toggleReaction") {
+      const sheet = getSheet("ChatReactions");
+      const rows = sheet.getDataRange().getValues();
+      var found = false;
+      for (var i = rows.length - 1; i >= 1; i--) {
+        if (rows[i][0] === e.parameter.messageId && rows[i][1] === e.parameter.email && rows[i][2] === e.parameter.reaction) {
+          sheet.deleteRow(i + 1);
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        sheet.appendRow([e.parameter.messageId, e.parameter.email, e.parameter.reaction, new Date().toISOString()]);
+      }
+      return createResponse({ success: true, added: !found });
     }
 
     if (action === "sendChat") {

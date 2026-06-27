@@ -427,6 +427,9 @@ class SpreadsheetDatabase {
         if (result.readStatus) {
           this._chatReadStatus = result.readStatus;
         }
+        if (result.reactions) {
+          this._chatReactions = result.reactions;
+        }
 
         // ローカルにのみある未送信メッセージ（GASにまだ届いていないもの）をマージ
         const data = this._getLocalData();
@@ -522,6 +525,35 @@ class SpreadsheetDatabase {
           lastReadAt: new Date().toISOString()
         })
       }).catch(err => console.error("既読更新エラー:", err));
+    }
+  }
+
+  // チャットリアクションの取得
+  getChatReactions() {
+    return this._chatReactions || {};
+  }
+
+  // チャットリアクションの送信
+  async toggleReaction(messageId, reaction) {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser) return;
+    const config = this.getGASConfig();
+    if (config.isEnabled && config.gasUrl) {
+      try {
+        const response = await fetch(config.gasUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            action: "toggleReaction",
+            messageId: messageId,
+            email: currentUser.email,
+            reaction: reaction
+          })
+        });
+        return await response.json();
+      } catch (err) {
+        console.error("リアクションエラー:", err);
+      }
     }
   }
 

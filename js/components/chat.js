@@ -134,8 +134,10 @@ class ChatComponent {
         return;
       }
 
-      // 既読状態を取得
+      // 既読状態・リアクションを取得
       const readStatus = db.getChatReadStatus();
+      const reactions = db.getChatReactions();
+      const reactionEmojis = ['👍', '❤️', '😂', '😮', '😢'];
 
       // メッセージリストのHTMLを一時的に構築
       let newHtml = "";
@@ -148,7 +150,7 @@ class ChatComponent {
         const mins = String(date.getMinutes()).padStart(2, '0');
         const timeStr = `${hours}:${mins}`;
 
-        // 自分のメッセージの既読判定：相手の最終閲覧時刻がメッセージ送信時刻より後なら既読
+        // 自分のメッセージの既読判定
         let readLabel = "";
         if (isMe) {
           const otherEmails = Object.keys(readStatus).filter(e => e !== currentUser.email);
@@ -159,11 +161,32 @@ class ChatComponent {
           readLabel = isRead ? '<span class="chat-msg-read">既読</span>' : '';
         }
 
+        // リアクション表示
+        const msgReactions = reactions[msg.id] || [];
+        const reactionCounts = {};
+        msgReactions.forEach(r => {
+          if (!reactionCounts[r.reaction]) reactionCounts[r.reaction] = { count: 0, mine: false };
+          reactionCounts[r.reaction].count++;
+          if (r.email === currentUser.email) reactionCounts[r.reaction].mine = true;
+        });
+
+        let reactionHtml = '';
+        if (Object.keys(reactionCounts).length > 0) {
+          reactionHtml = '<div class="chat-reactions-display">';
+          for (const [emoji, info] of Object.entries(reactionCounts)) {
+            reactionHtml += `<span class="chat-reaction-badge ${info.mine ? 'mine' : ''}" data-msgid="${msg.id}" data-reaction="${emoji}">${emoji} ${info.count}</span>`;
+          }
+          reactionHtml += '</div>';
+        }
+
+        const reactionPicker = `<div class="chat-reaction-picker" data-msgid="${msg.id}">${reactionEmojis.map(e => `<span class="chat-reaction-btn" data-msgid="${msg.id}" data-reaction="${e}">${e}</span>`).join('')}</div>`;
+
         if (isMe) {
           newHtml += `
             <div class="${rowClass}">
               <div class="chat-msg-body">
-                <div class="chat-msg-balloon">${this.escapeHTML(msg.message)}</div>
+                <div class="chat-msg-balloon" data-msgid="${msg.id}">${this.escapeHTML(msg.message)}${reactionPicker}</div>
+                ${reactionHtml}
               </div>
               <div class="chat-msg-meta">
                 ${readLabel}
@@ -177,7 +200,8 @@ class ChatComponent {
               <img src="${msg.senderAvatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=50&h=50&q=80'}" alt="Avatar" class="chat-msg-avatar">
               <div class="chat-msg-body">
                 <span class="chat-msg-sender">${this.escapeHTML(msg.senderName)}</span>
-                <div class="chat-msg-balloon">${this.escapeHTML(msg.message)}</div>
+                <div class="chat-msg-balloon" data-msgid="${msg.id}">${this.escapeHTML(msg.message)}${reactionPicker}</div>
+                ${reactionHtml}
               </div>
               <span class="chat-msg-time">${timeStr}</span>
             </div>
@@ -193,10 +217,12 @@ class ChatComponent {
         const isRead = otherEmails.some(e => new Date(readStatus[e]).getTime() >= new Date(msg.createdAt).getTime());
         return isRead ? '1' : '0';
       }).join('');
-      const newKey = messages.map(m => m.id).join(',') + '|' + readFlags;
+      const reactKey = JSON.stringify(reactions);
+      const newKey = messages.map(m => m.id).join(',') + '|' + readFlags + '|' + reactKey;
       if (this._lastKey !== newKey) {
         this._lastKey = newKey;
         this.container.innerHTML = newHtml;
+        this.setupReactionListeners();
         
         // 送信後、またはすでに最下部にいた場合のみスクロール位置を最下部に調整
         if (!isPolling || isAtBottom) {
@@ -210,6 +236,44 @@ class ChatComponent {
         this.container.innerHTML = `<div class="text-danger" style="padding: 1rem;">メッセージのロード中にエラーが発生しました。</div>`;
       }
     }
+  }
+
+  setupReactionListeners() {
+    // 吹き出しクリックでリアクションピッカー表示
+    this.container.querySelectorAll('.chat-msg-balloon').forEach(balloon => {
+      balloon.addEventListener('click', (e) => {
+        if (e.target.classList.contains('chat-reaction-btn')) return;
+        const picker = balloon.querySelector('.chat-reaction-picker');
+        if (picker) {
+          const isVisible = picker.style.display === 'flex';
+          this.container.querySelectorAll('.chat-reaction-picker').forEach(p => p.style.display = 'none');
+          picker.style.display = isVisible ? 'none' : 'flex';
+        }
+      });
+    });
+
+    // リアクションボタンクリック
+    this.container.querySelectorAll('.chat-reaction-btn').forEach(btn => {
+      btn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const msgId = btn.dataset.msgid;
+        const reaction = btn.dataset.reaction;
+        await db.toggleReaction(msgId, reaction);
+        this.container.querySelectorAll('.chat-reaction-picker').forEach(p => p.style.display = 'none');
+        await this.render(false);
+      });
+    });
+
+    // 既存リアクションバッジクリックでトグル
+    this.container.querySelectorAll('.chat-reaction-badge').forEach(badge => {
+      badge.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        const msgId = badge.dataset.msgid;
+        const reaction = badge.dataset.reaction;
+        await db.toggleReaction(msgId, reaction);
+        await this.render(false);
+      });
+    });
   }
 
   scrollToBottom() {
