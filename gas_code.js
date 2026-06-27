@@ -116,6 +116,33 @@ function doGet(e) {
 
       logSheet.appendRow([email, "true", "ログイン成功", nowStr]);
 
+      // T以外は複数端末ログイン制限
+      if (email !== "syunka14@gmail.com") {
+        const sessSheet = getSheet("Sessions");
+        const sessRows = sessSheet.getDataRange().getValues();
+        const sessNow = new Date().getTime();
+        const sessionExpiry = 24 * 60 * 60 * 1000;
+
+        for (let i = sessRows.length - 1; i >= 1; i--) {
+          const loginTime = new Date(sessRows[i][2]).getTime();
+          if (sessNow - loginTime > sessionExpiry) {
+            sessSheet.deleteRow(i + 1);
+          }
+        }
+
+        const freshRows = sessSheet.getDataRange().getValues();
+        for (let i = 1; i < freshRows.length; i++) {
+          if (freshRows[i][0] === email) {
+            return createResponse({ success: false, message: "このアカウントは別の端末でログイン中です。先にログアウトしてください。" });
+          }
+        }
+      }
+
+      // セッション登録
+      const token = "sess_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+      const sessSheetForSave = getSheet("Sessions");
+      sessSheetForSave.appendRow([email, token, new Date().toISOString()]);
+
       // Mがログインした場合、Tにメール通知
       if (email !== "syunka14@gmail.com") {
         MailApp.sendEmail({
@@ -127,11 +154,19 @@ function doGet(e) {
 
       const userCopy = { ...user };
       delete userCopy.password;
-      return createResponse({ success: true, user: userCopy });
+      return createResponse({ success: true, user: userCopy, sessionToken: token });
     }
 
     // セッション解除（ログアウト）
     if (action === "logout") {
+      const token = e.parameter.token;
+      const sessSheet = getSheet("Sessions");
+      const sessRows = sessSheet.getDataRange().getValues();
+      for (let i = sessRows.length - 1; i >= 1; i--) {
+        if (sessRows[i][0] === email || sessRows[i][1] === token) {
+          sessSheet.deleteRow(i + 1);
+        }
+      }
       return createResponse({ success: true });
     }
     
