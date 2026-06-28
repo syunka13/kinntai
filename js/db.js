@@ -49,7 +49,7 @@ class SpreadsheetDatabase {
   // GAS設定の取得
   getGASConfig() {
     const defaultConfig = {
-      gasUrl: "https://script.google.com/macros/s/AKfycbxUVkgcTXsjvu8tU3TrKwX9OtbRHCO79dHfRAknlpFp1KhijUZ5fClMuRJaDf5q3f8/exec",
+      gasUrl: "https://script.google.com/macros/s/AKfycbx31va5Ne79fKXzhWS3U26Q8yGIHBFt5pNINrBpHGKiXgK3HkguiV3kGGDS0GHl5N3H/exec",
       isEnabled: true
     };
     return defaultConfig;
