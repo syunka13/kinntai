@@ -19,13 +19,10 @@ class ChatComponent {
       } finally {
         this._polling = false;
       }
-    }, 3000);
+    }, 5000);
 
-    // チャットを開いた時点で既読を送信
+    // 既読送信は初回のみ、以降はメッセージ送信時に送る
     db.updateChatReadStatus();
-    this._readInterval = setInterval(() => {
-      db.updateChatReadStatus();
-    }, 10000);
 
     // 5分無操作で自動退出
     this._inactivityLimit = 5 * 60 * 1000;
@@ -60,9 +57,6 @@ class ChatComponent {
   destroy() {
     if (this.pollInterval) {
       clearInterval(this.pollInterval);
-    }
-    if (this._readInterval) {
-      clearInterval(this._readInterval);
     }
     if (this._inactivityTimer) {
       clearTimeout(this._inactivityTimer);
@@ -99,6 +93,7 @@ class ChatComponent {
 
       try {
         await db.sendChatMessage(messageText);
+        db.updateChatReadStatus();
       } catch (error) {
         alert("送信に失敗しました: " + error.message);
       } finally {
